@@ -17,10 +17,13 @@ namespace TravelMasterApi.Enums
     {
         Tours = 1,
         Hotels = 2,
-        Cruises = 3,
-        Combo = 4,
-        Home = 7,
-        OrtherServices = 6,
+        Car = 3,
+    }
+    public enum eBookingState
+    {
+        PendingProcessing = 1,
+        Processed = 2,
+        Cancelled = 3,
     }
 
 }

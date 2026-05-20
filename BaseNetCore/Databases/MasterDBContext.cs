@@ -60,19 +60,10 @@ public partial class MasterDBContext : DbContext
             entity.Property(e => e.Id)
                 .HasColumnType("bigint(20)")
                 .HasColumnName("id");
-            entity.Property(e => e.Adult)
-                .HasColumnType("int(11)")
-                .HasColumnName("adult");
-            entity.Property(e => e.Baby)
-                .HasColumnType("int(11)")
-                .HasColumnName("baby");
             entity.Property(e => e.BookingUuid)
                 .HasMaxLength(36)
                 .IsFixedLength()
                 .HasColumnName("booking_uuid");
-            entity.Property(e => e.Children)
-                .HasColumnType("int(11)")
-                .HasColumnName("children");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("current_timestamp()")
                 .HasColumnType("timestamp")
@@ -101,13 +92,13 @@ public partial class MasterDBContext : DbContext
                 .HasDefaultValueSql("current_timestamp()")
                 .HasColumnType("timestamp")
                 .HasColumnName("start_time");
+            entity.Property(e => e.TotalCustomer)
+                .HasColumnType("int(11)")
+                .HasColumnName("total_customer");
             entity.Property(e => e.Uuid)
                 .HasMaxLength(36)
                 .IsFixedLength()
                 .HasColumnName("uuid");
-            entity.Property(e => e.YourName)
-                .HasMaxLength(255)
-                .HasColumnName("your_name");
 
             entity.HasOne(d => d.BookingUu).WithMany(p => p.BookingDetail)
                 .HasPrincipalKey(p => p.Uuid)

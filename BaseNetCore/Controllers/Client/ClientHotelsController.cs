@@ -1,15 +1,19 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using TravelMasterApi.Base.BaseExtension;
 using TravelMasterApi.Base.BaseMessages;
-using TravelMasterApi.Controllers.Admin;
 using TravelMasterApi.Databases;
 using TravelMasterApi.Enums;
-using TravelMasterApi.Models.Admin.Request;
 using TravelMasterApi.Models.Admin.Response;
+using TravelMasterApi.Models.RequestModel;
 using TravelMasterApi.Models.ResponseModel;
 using TravelMasterApi.Settings;
 
@@ -18,40 +22,44 @@ namespace TravelMasterApi.Controllers.Client
     [ApiVersion("1.1")]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
-    public class ClientTourController : ControllerBase
+    public class ClientHotelsController : ControllerBase
     {
         private readonly MasterDBContext _context;
-        private readonly ILogger<ClientTourController> _logger;
+        private readonly ILogger<ClientHotelsController> _logger;
 
-        public ClientTourController(MasterDBContext context, ILogger<ClientTourController> logger)
+        public ClientHotelsController(MasterDBContext context, ILogger<ClientHotelsController> logger)
         {
             _context = context;
             _logger = logger;
         }
+
         [HttpPost("")]
-        [SwaggerResponse(statusCode: 200, type: typeof(BaseResponseMessage<BaseResponseMessagePage<TourClientResponeModels>>), description: "Success full")]
-        public async Task<IActionResult> Get([FromBody] GetTourRequestModelForClient request)
+        [SwaggerResponse(statusCode: 200, type: typeof(BaseResponseMessage<BaseResponseMessagePage<HotelClientResponseModels>>), description: "Success")]
+        public async Task<IActionResult> Get([FromBody] HotelClientRequestModel request)
         {
-            var reps = new BaseResponseMessage<BaseResponseMessagePage<TourClientResponeModels>>();
+            var reps = new BaseResponseMessage<BaseResponseMessagePage<HotelClientResponseModels>>();
             try
             {
-                var query = await _context.Tours.AsNoTracking().Include(x => x.DepartureSlugNavigation)
+                var query = await _context.Hotels.AsNoTracking().Include(x => x.SlugLocationsNavigation)
                     .Where(x => x.IsEnable == 1)
                     .Where(x => !request.Ranking.HasValue || request.Ranking.Value == x.Ranking)
                     .Where(x => !request.IsHot.HasValue || request.IsHot.Value == x.IsHot)
-                    .Where(x => request.Departures == null || !request.Departures.Any() || request.Departures.Contains(x.DepartureSlug))
-                    .Where(x => request.Destinations == null || !request.Destinations.Any() || x.TourDestination.Any(a=>a.IsEnable==1&& request.Destinations.Contains(a.LocationSlug)))
-                    .Select(x => new TourClientResponeModels
+                    .Where(x => !request.Type.HasValue || request.Type.Value == x.Type)
+                    .Where(x => request.Locations == null || !request.Locations.Any() || request.Locations.Contains(x.SlugLocations))
+                    .Select(x => new HotelClientResponseModels
                     {
+                        Name = x.Name,
                         Slug = x.Slug,
-                        Title = x.Title,
+                        Type = x.Type,
+                        Ranking = $"{x.Ranking}",
+                        RelativePrice = x.RelativePrice,
                         Thumbnail = x.Thumbnail,
-                        OriginalPrices = x.OriginalPrices,
-                        SalePrices = x.SalePrices,
-                        Durations = $"{x.DurationDays}D{x.DurationNights}N",
+                        Locations = x.SlugLocationsNavigation.Name,
+                        Address = x.Address,
+                        IsHot = x.IsHot,
                         CreatedAt = x.CreatedAt
-
                     }).OrderByDescending(x => x.CreatedAt).TakePage(request.Page, request.Limit);
+
                 reps.Data = new()
                 {
                     Items = query,
@@ -65,16 +73,17 @@ namespace TravelMasterApi.Controllers.Client
             }
             catch (Exception ex)
             {
-                _logger.LogError($"API Get Tours Error Message: {ex.Message}\n DatetimeUtc:{DateTime.UtcNow}\n StraceTrace:{ex.StackTrace} ");
+                _logger.LogError($"API Get Hotels Error Message: {ex.Message}\n DatetimeUtc:{DateTime.UtcNow}\n StraceTrace:{ex.StackTrace} ");
                 reps.error = new BaseResponseMessage.Error(ErrorCode.SYSTEM_ERROR);
                 return new OkObjectResult(reps);
             }
         }
+
         [HttpPost("detail/{slug}")]
-        [SwaggerResponse(statusCode: 200, type: typeof(BaseResponseMessage<DetailTourClientResponeModels>), description: "Success full")]
+        [SwaggerResponse(statusCode: 200, type: typeof(BaseResponseMessage<DetailHotelClientResponseModels>), description: "Success")]
         public async Task<IActionResult> Detail([FromRoute] string slug)
         {
-            var reps = new BaseResponseMessage<DetailTourClientResponeModels>();
+            var reps = new BaseResponseMessage<DetailHotelClientResponseModels>();
             try
             {
                 if (string.IsNullOrEmpty(slug))
@@ -82,32 +91,41 @@ namespace TravelMasterApi.Controllers.Client
                     reps.error = new BaseResponseMessage.Error(ErrorCode.SLUG_IS_EMPTY);
                     return new OkObjectResult(reps);
                 }
-                var query = await _context.Tours.AsNoTracking().Include(x => x.TourDestination).ThenInclude(a => a.LocationSlugNavigation).Where(x => x.Slug == slug && x.IsEnable == 1).FirstOrDefaultAsync();
-                if (query == null)
+
+                var hotel = await _context.Hotels.AsNoTracking().Include(x => x.SlugLocationsNavigation).Where(x => x.Slug == slug && x.IsEnable == 1).FirstOrDefaultAsync();
+                if (hotel == null)
                 {
                     reps.error = new BaseResponseMessage.Error(ErrorCode.NOT_FOUND);
                     return new OkObjectResult(reps);
                 }
-                var images = await _context.Images.AsNoTracking().Where(x => x.OwnerUuid == query.Uuid).Select(x => x.Path).ToListAsync();
-                reps.Data = new DetailTourClientResponeModels()
-                {
-                    Destinations = query.TourDestination.Where(x => x.TourSlug == slug).OrderByDescending(x => x.DisplayOrder).Select(x => x.LocationSlugNavigation.Name).ToList(),
-                    Images = images,
-                    Slug = query.Slug,
-                    Title = query.Title,
-                    Thumbnail = query.Thumbnail,
-                    OriginalPrices = query.OriginalPrices,
-                    SalePrices = query.SalePrices,
-                    DurationDays = query.DurationDays,
-                    DurationNights = query.DurationNights,
-                    Introduce = query.Introduce,
 
+                var lstImages = await _context.Images.AsNoTracking().Where(x => x.OwnerUuid == hotel.Uuid && x.IsEnable == 1).Select(x => x.Path).ToListAsync();
+
+                reps.Data = new DetailHotelClientResponseModels()
+                {
+                    Name = hotel.Name,
+                    Introduce = hotel.Introduce,
+                    Thumbnail = hotel.Thumbnail,
+                    Images = lstImages,
+                    IsHot = hotel.IsHot,
+                    Ranking = $"{hotel.Ranking}",
+                    Locations = hotel.SlugLocationsNavigation.Name,
+                    SlugLocations = hotel.SlugLocations,
+                    Type = hotel.Type,
+                    RelativePrice = hotel.RelativePrice,
+                    Address = hotel.Address,
+                    Regulations = hotel.Regulations,
+                    Slug = hotel.Slug,
+                    HotelsNearby = new List<LocationsObject>(),
+                    TouristAttraction = new List<LocationsObject>(),
+                    Topic = new List<LocationsObject>()
                 };
+
                 return new OkObjectResult(reps);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"API Get Tours Error Message: {ex.Message}\n DatetimeUtc:{DateTime.UtcNow}\n StraceTrace:{ex.StackTrace} ");
+                _logger.LogError($"API Get Hotel Detail Error Message: {ex.Message}\n DatetimeUtc:{DateTime.UtcNow}\n StraceTrace:{ex.StackTrace} ");
                 reps.error = new BaseResponseMessage.Error(ErrorCode.SYSTEM_ERROR);
                 return new OkObjectResult(reps);
             }
@@ -151,8 +169,8 @@ namespace TravelMasterApi.Controllers.Client
                     reps.error = new BaseResponseMessage.Error(ErrorCode.TIME_IS_EMPTY);
                     return new OkObjectResult(reps);
                 }
-               
-                var query = await _context.Tours.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == request.Slug && x.IsEnable == 1);
+
+                var query = await _context.Cars.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == request.Slug && x.IsEnable == 1);
                 if (query is null)
                 {
                     reps.error = new BaseResponseMessage.Error(ErrorCode.NOT_FOUND);
@@ -162,7 +180,7 @@ namespace TravelMasterApi.Controllers.Client
                 {
                     Uuid = Guid.NewGuid().ToString(),
                     State = (sbyte)eBookingState.PendingProcessing,
-                    CategoryId = (long)eCategories.Tours,
+                    CategoryId = (long)eCategories.Hotels,
                     SlugOwner = request.Slug,
 
                 };
@@ -191,6 +209,5 @@ namespace TravelMasterApi.Controllers.Client
                 return new OkObjectResult(reps);
             }
         }
-
     }
 }

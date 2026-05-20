@@ -47,7 +47,6 @@ namespace TravelMasterApi.Controllers.Admin
                     .Where(x => string.IsNullOrEmpty(request.Keyword)||
                     x.BookingDetail.Any(d =>
                             EF.Functions.Like(d.FullName, $"{request.Keyword}%") ||
-                            EF.Functions.Like(d.YourName, $"{request.Keyword}%") ||
                             EF.Functions.Like(d.PhoneNumber, $"{request.Keyword}%") ||
                             EF.Functions.Like(d.Email, $"{request.Keyword}%")
                         ))
@@ -148,13 +147,10 @@ namespace TravelMasterApi.Controllers.Admin
                     FullName = detail?.FullName,
                     PhoneNumber = detail?.PhoneNumber,
                     SpecialRequirements = detail?.SpecialRequirements,
-                    YourName = detail?.YourName,
                     Email = detail?.Email,
                     StartTime = detail?.StartTime,
                     EndTime = detail?.EndTime,
-                    TotalAdults = detail?.Adult ?? 0,
-                    TotalChildrens = detail?.Children ?? 0,
-                    TotalBabys = detail?.Baby ?? 0,
+
                     ServiceName = booking.SlugOwner
                 };
 
@@ -166,7 +162,6 @@ namespace TravelMasterApi.Controllers.Admin
                         if (tour != null)
                         {
                             detailRep.ServiceName = tour.Title;
-                            detailRep.DepartureName = tour.DepartureSlugNavigation?.Name;
                         }
                     }
                     else if (booking.CategoryId == (long)eCategories.Hotels)

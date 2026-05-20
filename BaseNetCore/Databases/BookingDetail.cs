@@ -13,13 +13,7 @@ public partial class BookingDetail
 
     public DateTime StartTime { get; set; }
 
-    public int Adult { get; set; }
-
-    public int Children { get; set; }
-
-    public int Baby { get; set; }
-
-    public string? YourName { get; set; }
+    public int TotalCustomer { get; set; }
 
     public string FullName { get; set; } = null!;
 

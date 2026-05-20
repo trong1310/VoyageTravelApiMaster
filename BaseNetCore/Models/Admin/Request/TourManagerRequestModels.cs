@@ -62,6 +62,8 @@ namespace TravelMasterApi.Models.Admin.Request
     {
         public ulong? IsHot { get; set; }
         public int? Ranking { get; set; }
+        public List<string>? Departures { get; set; }
+        public List<string>? Destinations { get; set; }
 
     }
 }
