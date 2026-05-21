@@ -181,6 +181,7 @@ namespace TravelMasterApi.Controllers.Client
                 };
                 await _context.BookingDetail.AddAsync(bookingCombo);
                 await _context.SaveChangesAsync();
+                await _context.Database.CommitTransactionAsync();
                 return new OkObjectResult(reps);
             }
             catch (Exception ex)

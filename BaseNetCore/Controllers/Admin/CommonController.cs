@@ -48,6 +48,7 @@ namespace TravelMasterApi.Controllers.Admin
                     {
                         Name = x.Name,
                         Slug = x.Slug,
+                        Images = x.Images,
                     }).TakePage(request.Page, request.Limit);
                 reps.Data = new()
                 {

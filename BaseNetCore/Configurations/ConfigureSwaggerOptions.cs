@@ -45,7 +45,7 @@ namespace TravelMasterApi.Configurations
         {
             var info = new OpenApiInfo()
             {
-                Title = "VTSTravelMasterApi",
+                Title = "TravelMasterApi",
                 Version = desc.ApiVersion.ToString()
             };
 

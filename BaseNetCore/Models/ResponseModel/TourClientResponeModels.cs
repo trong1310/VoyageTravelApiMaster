@@ -27,6 +27,7 @@
     {
         public string? Slug { get; set; }
         public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public int TotalCustomer { get; set; } = 0;
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }

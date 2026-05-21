@@ -65,7 +65,7 @@ namespace TravelMasterApi.Controllers.Admin
                         ServiceName = b.SlugOwner,
                         FullName = b.BookingDetail.FirstOrDefault(x=>x.BookingUuid==b.Uuid).FullName??"",
                         PhoneNumber = b.BookingDetail.FirstOrDefault(x => x.BookingUuid == b.Uuid).PhoneNumber ?? "",
-                        Type = b.CategoryId == (long)eCategories.Tours ? (sbyte)1 : b.CategoryId == (long)eCategories.Hotels ? (sbyte)2 : (sbyte)0
+                        Type = b.CategoryId == (long)eCategories.Tours ? (sbyte)1 : b.CategoryId == (long)eCategories.Hotels ? (sbyte)2 : b.CategoryId == (long)eCategories.Car ? (sbyte)3 : (sbyte)0
                     }).TakePage(request.Page, request.Limit);
                 foreach (var item in datas)
                 {
@@ -86,6 +86,14 @@ namespace TravelMasterApi.Controllers.Admin
                             if (!string.IsNullOrEmpty(hotelName))
                             {
                                 item.ServiceName = hotelName;
+                            }
+                        }
+                        else if (item.CategoryId == (long)eCategories.Car)
+                        {
+                            var carName = await _context.Cars.AsNoTracking().Where(c => c.Slug == item.Slug).Select(c => c.Name).FirstOrDefaultAsync();
+                            if (!string.IsNullOrEmpty(carName))
+                            {
+                                item.ServiceName = carName;
                             }
                         }
                     }
@@ -150,6 +158,7 @@ namespace TravelMasterApi.Controllers.Admin
                     Email = detail?.Email,
                     StartTime = detail?.StartTime,
                     EndTime = detail?.EndTime,
+                    TotalCustomer = detail?.TotalCustomer ?? 0,
 
                     ServiceName = booking.SlugOwner
                 };
@@ -170,6 +179,14 @@ namespace TravelMasterApi.Controllers.Admin
                         if (hotel != null)
                         {
                             detailRep.ServiceName = hotel.Name;
+                        }
+                    }
+                    else if (booking.CategoryId == (long)eCategories.Car)
+                    {
+                        var car = await _context.Cars.FirstOrDefaultAsync(c => c.Slug == booking.SlugOwner);
+                        if (car != null)
+                        {
+                            detailRep.ServiceName = car.Name;
                         }
                     }
                 }

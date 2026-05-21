@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -30,13 +30,15 @@
   <ItemGroup>
     <Folder Include="Databases\" />
     <Folder Include="Dto\NewFolder\" />
-    <Folder Include="Resources\" />
     <Folder Include="Timers\" />
     <Folder Include="Services\" />
     <Folder Include="Partial\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\1.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\text.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

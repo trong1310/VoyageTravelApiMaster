@@ -33,8 +33,5 @@ namespace TravelMasterApi.Models.ResponseModel
         public string? Regulations { get; set; }
         public ulong? IsHot { get; set; }
         public List<string>? Images { get; set; }
-        public List<LocationsObject>? HotelsNearby { get; set; }
-        public List<LocationsObject>? TouristAttraction { get; set; }
-        public List<LocationsObject>? Topic { get; set; }
     }
 }

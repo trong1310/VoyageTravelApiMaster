@@ -116,9 +116,6 @@ namespace TravelMasterApi.Controllers.Client
                     Address = hotel.Address,
                     Regulations = hotel.Regulations,
                     Slug = hotel.Slug,
-                    HotelsNearby = new List<LocationsObject>(),
-                    TouristAttraction = new List<LocationsObject>(),
-                    Topic = new List<LocationsObject>()
                 };
 
                 return new OkObjectResult(reps);
@@ -164,13 +161,13 @@ namespace TravelMasterApi.Controllers.Client
                     reps.error = new BaseResponseMessage.Error(ErrorCode.EMAIL_FORMAT);
                     return new OkObjectResult(reps);
                 }
-                if (!request.StartTime.HasValue)
+                if (!request.StartTime.HasValue||!request.EndTime.HasValue)
                 {
                     reps.error = new BaseResponseMessage.Error(ErrorCode.TIME_IS_EMPTY);
                     return new OkObjectResult(reps);
                 }
 
-                var query = await _context.Cars.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == request.Slug && x.IsEnable == 1);
+                var query = await _context.Hotels.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == request.Slug && x.IsEnable == 1);
                 if (query is null)
                 {
                     reps.error = new BaseResponseMessage.Error(ErrorCode.NOT_FOUND);
@@ -195,10 +192,12 @@ namespace TravelMasterApi.Controllers.Client
                     PhoneNumber = request.PhoneNumber,
                     SpecialRequirements = request.SpecialRequirements,
                     StartTime = request.StartTime.Value,
+                    EndTime = request.EndTime.Value,
 
                 };
                 await _context.BookingDetail.AddAsync(bookingCombo);
                 await _context.SaveChangesAsync();
+                await _context.Database.CommitTransactionAsync();
                 return new OkObjectResult(reps);
             }
             catch (Exception ex)
