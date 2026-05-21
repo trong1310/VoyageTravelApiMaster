@@ -103,7 +103,9 @@ namespace TravelMasterApi.Settings
 
         [Description("Giá trị không hợp lệ")]
         VALUES_IS_INVALID,
-
+        [Description("Không đủ ghế trống")]
+        SEAT_ALREADY_EXISTS,
+      
 
         //--------------------------------
 

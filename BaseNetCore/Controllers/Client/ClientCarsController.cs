@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -171,6 +171,24 @@ namespace TravelMasterApi.Controllers.Client
                 {
                     reps.error = new BaseResponseMessage.Error(ErrorCode.NOT_FOUND);
                     return new OkObjectResult(reps);
+                }
+                if (request.TotalCustomer > query.SeatCount)
+                {
+                    reps.error = new BaseResponseMessage.Error(ErrorCode.SEAT_ALREADY_EXISTS);
+                    return new OkObjectResult(reps);
+                }
+                var checkBookingTime = await _context.Bookings.AsNoTracking().Where(x => request.Slug == x.SlugOwner && x.CategoryId == (long)eCategories.Car
+                && x.BookingDetail.Any(a => a.StartTime.Date == request.StartTime.Value.Date)).ToListAsync();
+                if (checkBookingTime.Any())
+                {
+                    var countSeat = checkBookingTime.Sum(a => a.BookingDetail.Sum(b => b.TotalCustomer));
+                    var checkSeat = query.SeatCount - countSeat;
+                    if (request.TotalCustomer > checkSeat)
+                    {
+                        reps.error = new BaseResponseMessage.Error(ErrorCode.FAILED);
+                        reps.error.Message = $"Không đủ ghế trống ngày bạn chọn chỉ còn lại {checkSeat} ghế trống";
+                        return new OkObjectResult(reps);
+                    }
                 }
                 var booking = new Bookings()
                 {
