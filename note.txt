@@ -1,0 +1,1 @@
+﻿dotnet ef dbcontext scaffold "Server=localhost;Database=travel;Uid=root;Pwd=vantrong;Allow Zero Datetime=true;convert zero datetime=True;old guids=True;" Pomelo.EntityFrameworkCore.MySql -c MasterDBContext -o Databases -f -v --no-build --no-onconfiguring --no-pluralize
