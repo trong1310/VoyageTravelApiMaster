@@ -33,6 +33,10 @@ public partial class MasterDBContext : DbContext
 
     public virtual DbSet<Tours> Tours { get; set; }
 
+    public virtual DbSet<UserAuthentications> UserAuthentications { get; set; }
+
+    public virtual DbSet<Users> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -621,6 +625,90 @@ public partial class MasterDBContext : DbContext
                 .HasPrincipalKey(p => p.Slug)
                 .HasForeignKey(d => d.DepartureSlug)
                 .HasConstraintName("tours_ibfk_3");
+        });
+
+        modelBuilder.Entity<UserAuthentications>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("user_authentications");
+
+            entity.HasIndex(e => e.UserUuid, "user_uuid");
+
+            entity.HasIndex(e => e.Uuid, "uuid").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasColumnType("bigint(20)")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("timestamp")
+                .HasColumnName("created_at");
+            entity.Property(e => e.PassWord)
+                .HasMaxLength(255)
+                .HasColumnName("pass_word");
+            entity.Property(e => e.Provider)
+                .HasComment("1: local,2: google,3: facebook")
+                .HasColumnType("tinyint(4)")
+                .HasColumnName("provider");
+            entity.Property(e => e.ProviderId)
+                .HasMaxLength(255)
+                .HasColumnName("provider_id");
+            entity.Property(e => e.UserUuid)
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasColumnName("user_uuid");
+            entity.Property(e => e.Uuid)
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasColumnName("uuid");
+
+            entity.HasOne(d => d.UserUu).WithMany(p => p.UserAuthentications)
+                .HasPrincipalKey(p => p.Uuid)
+                .HasForeignKey(d => d.UserUuid)
+                .HasConstraintName("user_authentications_ibfk_1");
+        });
+
+        modelBuilder.Entity<Users>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("users");
+
+            entity.HasIndex(e => e.CreatedAt, "created_at");
+
+            entity.HasIndex(e => e.State, "state");
+
+            entity.HasIndex(e => e.Uuid, "uuid").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasColumnType("bigint(20)")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("timestamp")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(255)
+                .HasColumnName("full_name");
+            entity.Property(e => e.IsEnable)
+                .HasDefaultValueSql("b'1'")
+                .HasColumnType("bit(1)")
+                .HasColumnName("is_enable");
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(15)
+                .HasColumnName("phone_number");
+            entity.Property(e => e.State)
+                .HasDefaultValueSql("'1'")
+                .HasColumnType("tinyint(2)")
+                .HasColumnName("state");
+            entity.Property(e => e.Uuid)
+                .HasMaxLength(36)
+                .IsFixedLength()
+                .HasColumnName("uuid");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -100,12 +100,18 @@ namespace TravelMasterApi.Settings
         DURATIONS_IS_INVALÌD,
         [Description("Email đã tồn tại trong hệ thống")]
         EMAIL_ALREADY_EXISTS,
+        [Description("Số điện thoại đã tồn tại trong hệ thống")]
+        PHONENUMBER_ALREADY_EXISTS,
+        [Description("Name cannot exceed 35 characters.")]
+        NAME_MAX_LENGTH,
 
         [Description("Giá trị không hợp lệ")]
         VALUES_IS_INVALID,
         [Description("Không đủ ghế trống")]
         SEAT_ALREADY_EXISTS,
-      
+        [Description("Thông tin đăng nhập không chính xác")]
+        ACCOUNT_IS_NOT_CORRECT,
+       
 
         //--------------------------------
 
